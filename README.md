@@ -12,9 +12,12 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#-license--contributions)
 
 <div align="center">
-<a href="https://writeflow-ai.vercel.app" target="_blank">
-![Live Demo](https://img.shields.io/badge/WRITEFLOW_AI-LIVE%20DEMO-7c3aed?style=for-the-badge&logo=vercel&logoColor=white&labelColor=111827)
-</a>
+  <a href="https://writeflow-ai.vercel.app" target="_blank">
+    <img
+      src="https://img.shields.io/badge/WRITEFLOW_AI-LIVE%20DEMO-7c3aed?style=for-the-badge&logo=vercel&logoColor=white&labelColor=111827"
+      alt="WRITEFLOW AI Live Demo"
+    />
+  </a>
 </div>
 
 </div>
