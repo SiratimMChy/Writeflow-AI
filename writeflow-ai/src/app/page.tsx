@@ -167,6 +167,7 @@ export default function LandingPage() {
           setIsLoadingTemplates(false)
         }, 800)
       })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Fetch public platform stats
