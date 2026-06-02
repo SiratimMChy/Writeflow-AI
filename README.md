@@ -1,4 +1,4 @@
-# ✍️ WriteFlow AI - AI-Powered Content Creation Platform
+# ✍️ WriteFlowAI AI-Powered Content Creation Platform
 
 <div align="center">
 
