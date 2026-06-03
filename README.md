@@ -225,21 +225,32 @@ WriteFlow AI operates as a decoupled system, utilizing two independent applicati
 
 ```mermaid
 graph TD
-    Client[User Browser]
+    %% Styling Definitions
+    classDef user fill:#f9f9f9,stroke:#333,stroke-width:2px,color:#333
+    classDef nextjs fill:#000000,stroke:#333,stroke-width:2px,color:#fff
+    classDef react fill:#61dafb,stroke:#333,stroke-width:2px,color:#000
+    classDef node fill:#339933,stroke:#333,stroke-width:2px,color:#fff
+    classDef mongo fill:#47a248,stroke:#333,stroke-width:2px,color:#fff
+    classDef ai fill:#ff4b4b,stroke:#333,stroke-width:2px,color:#fff
+
+    Client([💻 User Browser]):::user
     
     subgraph Frontend [writeflow-ai-frontend]
-        NextJS[Next.js App Router]
-        SSR[Server-Side Rendering]
-        CSR[Client-Side Hydration]
-        APIHandler[Next.js API Routes]
-        AIAgent[Vercel AI SDK]
+        NextJS[Next.js App Router]:::nextjs
+        SSR[Server-Side Rendering]:::nextjs
+        CSR[Client-Side Hydration]:::react
+        APIHandler[Next.js API Routes]:::nextjs
+        AIAgent[Vercel AI SDK]:::ai
     end
     
     subgraph Backend [writeflow-ai-backend]
-        Express[Express REST API]
-        JWT[JWT Verification]
-        Groq[Groq API]
-        MongoDB[(MongoDB Atlas)]
+        Express[Express REST API]:::node
+        JWT[JWT Verification]:::node
+    end
+    
+    subgraph External [External Services]
+        Groq{{Groq LLM API}}:::ai
+        MongoDB[(MongoDB Atlas)]:::mongo
     end
     
     Client -->|HTTPS Request| NextJS
@@ -268,18 +279,32 @@ graph TD
 
 ```mermaid
 sequenceDiagram
+    autonumber
     actor User
-    participant Client as Client Component
-    participant Backend as Backend API
-    participant Groq as Groq API
-    participant DB as MongoDB
+    
+    box LightCyan "Frontend"
+        participant Client as ⚛️ Client Component
+    end
+    
+    box LightGreen "Backend"
+        participant Backend as 🟢 Backend API
+    end
+    
+    box LightYellow "External Services"
+        participant Groq as 🧠 Groq API
+        participant DB as 🍃 MongoDB
+    end
     
     User->>Client: Enters prompt in Draft Agent
     Client->>Backend: Calls useChat hook (Frontend sends request)
-    Backend->>Groq: Processes request (llama-3.1-70b-versatile)
-    Groq-->>Backend: Token-by-token stream
-    Backend-->>Client: Token stream returns to client
-    Client-->>User: Updates UI in real-time
+    
+    rect rgb(240, 240, 240)
+        Backend->>Groq: Processes request (llama-3.1-70b-versatile)
+        Groq-->>Backend: Token-by-token stream
+        Backend-->>Client: Token stream returns to client
+        Client-->>User: Updates UI in real-time
+    end
+    
     Client->>Backend: Saves final output
     Backend->>DB: Saves to MongoDB
 ```
@@ -288,23 +313,39 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
+    autonumber
     actor User
-    participant Frontend
-    participant Backend as Backend API
-    participant DB as MongoDB
+    
+    box LightGray "Frontend"
+        participant Frontend as ⬛ Next.js App
+    end
+    
+    box LightGreen "Backend"
+        participant Backend as 🟢 Backend API
+    end
+    
+    box LightYellow "Database"
+        participant DB as 🍃 MongoDB
+    end
     
     User->>Frontend: Submits credentials on /login
     Frontend->>Backend: Sends credentials
-    Backend->>DB: Validates credentials against MongoDB
+    Backend->>DB: Validates credentials
     DB-->>Backend: Validation result
-    Backend-->>Frontend: Returns JWT access + refresh tokens
-    Frontend->>Frontend: Stores tokens in httpOnly cookies (cookies-next)
     
-    Note over User,DB: Subsequent API Requests
-    Frontend->>Backend: API request with Bearer token in Authorization header
-    Backend->>Backend: Middleware verifies JWT signature & decodes role
+    alt is Valid
+        Backend-->>Frontend: Returns JWT access + refresh tokens
+        Frontend->>Frontend: Stores tokens in httpOnly cookies
+    else is Invalid
+        Backend-->>Frontend: Returns 401 Unauthorized
+        Frontend-->>User: Shows error message
+    end
+    
+    Note over User,DB: 🔒 Subsequent API Requests
+    Frontend->>Backend: API request with Bearer token in Header
+    Backend->>Backend: Middleware verifies JWT & decodes role
     Backend-->>Frontend: Returns authorized data
-    Frontend-->>User: Role-based route guards render appropriate dashboard
+    Frontend-->>User: Renders appropriate dashboard based on role
 ```
 
 ### Component Architecture
