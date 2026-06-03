@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#-license--contributions)
 
 <div align="center">
-<a href="https://writeflow-ai.vercel.app" target="_blank">
+<a href="https://write-flow-ai-tau.vercel.app" target="_blank">
 ![Live Demo](https://img.shields.io/badge/WRITEFLOW_AI-LIVE%20DEMO-7c3aed?style=for-the-badge&logo=vercel&logoColor=white&labelColor=111827)
 </a>
 </div>
@@ -169,22 +169,24 @@ WriteFlow AI digitizes and accelerates the entire content pipeline:
 
 ## 🛠️ Tech Stack
 
-### Frontend Core
+### Frontend (`writeflow-ai-frontend`)
 
 - **[Next.js 14.2](https://nextjs.org/)** — React framework with App Router, server components, and streaming
 - **[React 18](https://react.dev/)** — Concurrent rendering, Suspense, and server components
 - **[TypeScript 5](https://www.typescriptlang.org/)** — Type safety across components, APIs, and utilities
 - **[Tailwind CSS 3.4](https://tailwindcss.com/)** — Utility-first styling with custom design tokens
-- **[Framer Motion 12](https://www.framer.com/motion/)** — Production-ready animations and page transitions
-
-### AI & Backend
-
 - **[Vercel AI SDK 6.0](https://sdk.vercel.ai/)** — Unified AI abstraction with streaming support (`useCompletion`, `useChat`)
-- **[Groq SDK](https://groq.com/)** — Lightning-fast LLM inference with Llama models
-- **[Axios](https://axios-http.com/)** — HTTP client for REST API communication
-- **[JWT Decode](https://github.com/auth0/jwt-decode)** — Client-side token parsing
-- **[PostgreSQL](https://www.postgresql.org/)** — Database via Supabase
 - **[NextAuth.js](https://next-auth.js.org/)** — Authentication with Google OAuth support
+- **[Prisma](https://www.prisma.io/)** — ORM for connecting to PostgreSQL
+
+### Backend (`writeflow-ai-backend`)
+
+- **[Node.js](https://nodejs.org/)** & **[Express](https://expressjs.com/)** — REST API framework
+- **[TypeScript 5](https://www.typescriptlang.org/)** — Type safety
+- **[Mongoose](https://mongoosejs.com/)** — MongoDB object modeling
+- **[Groq SDK](https://groq.com/)** — Lightning-fast LLM inference with Llama models
+- **[Passport.js](https://www.passportjs.org/)** — Authentication middleware (Google OAuth)
+- **[jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)** — JWT generation for API requests
 - **[bcryptjs](https://github.com/dcodeIO/bcrypt.js)** — Password hashing
 
 ### UI Components
@@ -214,24 +216,45 @@ WriteFlow AI digitizes and accelerates the entire content pipeline:
 
 ### Architecture Overview
 
-WriteFlow AI follows a **hybrid server/client component architecture** leveraging Next.js 14's App Router for optimal performance and SEO.
+WriteFlow AI operates as a decoupled system, utilizing two independent applications within the monorepo:
+1. **Frontend (`writeflow-ai-frontend`)**: A Next.js 14 application using the App Router for UI, routing, and server-side rendering.
+2. **Backend (`writeflow-ai-backend`)**: A Node.js Express application handling the REST API, AI integrations, and core business logic.
 
 ```mermaid
 graph TD
-    Client[User Browser] -->|HTTPS Request| NextJS[Next.js App Router]
-    NextJS -->|Server Component| SSR[Server-Side Rendering]
-    NextJS -->|Client Component| CSR[Client-Side Hydration]
+    Client[User Browser]
     
-    CSR -->|API Route| APIHandler[Next.js API Routes]
-    APIHandler -->|REST API| Backend[Express Backend / Render]
+    subgraph Frontend [writeflow-ai-frontend]
+        NextJS[Next.js App Router]
+        SSR[Server-Side Rendering]
+        CSR[Client-Side Hydration]
+        APIHandler[Next.js API Routes]
+        AIAgent[Vercel AI SDK]
+    end
     
-    CSR -->|AI Stream| AIAgent[Vercel AI SDK useChat]
-    AIAgent -->|LLM Request| Groq[Groq API]
+    subgraph Backend [writeflow-ai-backend]
+        Express[Express REST API]
+        JWT[JWT Verification]
+        Groq[Groq API]
+        MongoDB[(MongoDB Atlas)]
+    end
     
-    Backend -->|Query| MongoDB[(MongoDB Atlas)]
-    Backend -->|Auth| JWT[JWT Verification]
+    Client -->|HTTPS Request| NextJS
+    NextJS -->|Server Component| SSR
+    NextJS -->|Client Component| CSR
     
-    Groq -->|Token Stream| AIAgent
+    CSR -->|Internal API| APIHandler
+    CSR -->|AI Stream Hook| AIAgent
+    
+    APIHandler -->|REST API Request| Express
+    AIAgent -->|Stream Request| Express
+    
+    Express -->|Auth| JWT
+    Express -->|LLM Request| Groq
+    Express -->|Query| MongoDB
+    
+    Groq -->|Token Stream| Express
+    Express -->|Token Stream| AIAgent
     AIAgent -->|React Stream| CSR
     CSR -->|Real-time UI| Client
 ```
@@ -245,7 +268,7 @@ User enters prompt in Draft Agent
 ↓
 Client component calls useChat hook (Vercel AI SDK)
 ↓
-POST /api/chat with system prompt + user message
+Frontend sends request to Backend API with system prompt + user message
 ↓
 Groq API processes request (llama-3.1-70b-versatile)
 ↓
@@ -253,7 +276,7 @@ Token-by-token stream returns to client
 ↓
 React component updates UI in real-time with streaming text
 ↓
-Final output saved to MongoDB via /api/documents
+Final output saved to MongoDB via Backend API
 ```
 
 #### Authentication & Authorization Flow
@@ -261,7 +284,7 @@ Final output saved to MongoDB via /api/documents
 ```
 User submits credentials on /login
 ↓
-POST /api/auth/login → Backend validates against MongoDB
+Frontend sends credentials to Backend API → Backend validates against MongoDB
 ↓
 Backend returns JWT access token + refresh token
 ↓
@@ -336,57 +359,52 @@ Before you begin, ensure you have:
 - **Node.js** (v18.0.0 or higher)
 - **npm** (v9.0.0 or higher) or **yarn** (v1.22.0+)
 - A **Groq account** with API key (for AI inference)
-- Access to a **MongoDB** database (local or Atlas)
-- A **backend API** instance (see [Backend Repository](#))
+- Access to a **MongoDB** database (local or Atlas) for the backend
+- Access to a **PostgreSQL** database (e.g., Supabase) for the frontend
 
 ### Installation
 
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/writeflow-ai.git
-cd writeflow-ai/writeflow-ai
+git clone https://github.com/SiratimMChy/Writeflow-AI.git
+cd Writeflow-AI
 ```
 
-2. **Install dependencies**
+2. **Setup Backend**
 
 ```bash
+cd writeflow-ai-backend
 npm install
-# or
-yarn install
 ```
 
-3. **Configure environment variables**
-
-Create a `.env` file in the `writeflow-ai` directory:
-
-```env
-# Backend API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-
-# Groq AI Configuration
-GROQ_API_KEY=your_groq_api_key_here
-
-# Database Configuration (PostgreSQL via Supabase)
-DATABASE_URL="postgresql://user:password@host:6543/database?pgbouncer=true"
-DIRECT_URL="postgresql://user:password@host:5432/database"
-
-# NextAuth Configuration
-NEXTAUTH_SECRET=generate_a_random_secret_here
-NEXTAUTH_URL=http://localhost:3000
-
-# Google OAuth (Optional)
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+Create a `.env` file based on the example and configure your variables (e.g., MongoDB URI, Groq API key, JWT secrets):
+```bash
+cp .env.example .env
 ```
 
-4. **Start the development server**
+3. **Setup Frontend**
 
+```bash
+cd ../writeflow-ai-frontend
+npm install
+```
+
+Create a `.env` file based on the example and configure your variables (e.g., Supabase Postgres URL, NextAuth secrets, Stripe keys):
+```bash
+cp .env.example .env
+```
+
+4. **Start the development servers**
+
+In the backend directory:
 ```bash
 npm run dev
-# or
-yarn dev
+```
+
+In the frontend directory (open a new terminal):
+```bash
+npm run dev
 ```
 
 5. **Open your browser**
@@ -395,17 +413,7 @@ Navigate to `http://localhost:3000` to view the application.
 
 ### Environment Variables
 
-| Variable | Description | Required | Example |
-|----------|-------------|:--------:|---------|
-| `NEXT_PUBLIC_API_URL` | Backend REST API base URL | ✅ | `http://localhost:5000/api` |
-| `GROQ_API_KEY` | Groq AI API key for LLM inference | ✅ | `gsk_...` |
-| `DATABASE_URL` | PostgreSQL database connection string | ✅ | `postgresql://...` |
-| `DIRECT_URL` | Direct PostgreSQL connection (for migrations) | ✅ | `postgresql://...` |
-| `NEXTAUTH_SECRET` | NextAuth.js secret for session encryption | ✅ | Generated string |
-| `NEXTAUTH_URL` | Base URL for authentication callbacks | ✅ | `http://localhost:3000` |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | ❌ | From Google Console |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | ❌ | From Google Console |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Public Google client ID | ❌ | Same as above |
+For security reasons, actual environment variables are not provided here. Please refer to the `.env.example` files in both the `writeflow-ai-frontend` and `writeflow-ai-backend` directories for a complete list of required environment variables and instructions on how to obtain them.
 
 ---
 
@@ -483,103 +491,26 @@ Navigate to `http://localhost:3000` to view the application.
 
 ```
 writeflow-ai/
-├── .next/                        # Next.js build output (auto-generated)
-├── .vercel/                      # Vercel deployment config
-├── node_modules/                 # Dependencies
-├── public/                       # Static assets
-│   ├── favicon.ico              # Site icon
-│   └── team/                    # Team member photos
-│       ├── ai_rahim.png
-│       ├── ceo_siratim.png
-│       ├── cto_ruhit.png
-│       └── designer_abdur.png
-├── src/
-│   ├── app/                     # Next.js App Router pages
-│   │   ├── about/               # About page
-│   │   ├── auth/
-│   │   │   └── callback/        # OAuth callback handler
-│   │   ├── blog/                # Blog listing
-│   │   ├── contact/             # Contact form
-│   │   ├── dashboard/           # Protected dashboard routes
-│   │   │   ├── admin/           # Admin-only pages
-│   │   │   │   ├── analytics/   # System analytics
-│   │   │   │   ├── reviews/     # Review moderation
-│   │   │   │   ├── settings/    # Platform settings
-│   │   │   │   ├── templates/   # Template management
-│   │   │   │   └── users/       # User management
-│   │   │   ├── analytics/       # User analytics
-│   │   │   ├── chat/            # Chat Agent
-│   │   │   ├── documents/       # Document library
-│   │   │   ├── draft/           # Draft Agent
-│   │   │   ├── history/         # Generation history
-│   │   │   ├── profile/         # User profile settings
-│   │   │   ├── rewrite/         # Rewrite Agent
-│   │   │   ├── settings/        # Account settings
-│   │   │   ├── support/         # Support tickets
-│   │   │   ├── templates/       # User templates
-│   │   │   ├── layout.tsx       # Dashboard layout wrapper
-│   │   │   └── page.tsx         # Dashboard home
-│   │   ├── explore/             # Template marketplace
-│   │   ├── fonts/               # Custom font files
-│   │   ├── forgot-password/     # Password reset
-│   │   ├── login/               # Authentication page
-│   │   ├── maintenance/         # Maintenance mode page
-│   │   ├── privacy/             # Privacy policy
-│   │   ├── register/            # User registration
-│   │   ├── templates/
-│   │   │   └── [id]/            # Dynamic template detail page
-│   │   ├── terms/               # Terms of service
-│   │   ├── globals.css          # Global styles + Tailwind directives
-│   │   ├── layout.tsx           # Root layout with providers
-│   │   └── page.tsx             # Landing page
-│   ├── components/              # React components
-│   │   ├── ui/                  # Reusable UI primitives (shadcn/ui)
-│   │   │   ├── avatar.tsx
-│   │   │   ├── button.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── select.tsx
-│   │   │   └── ...
-│   │   ├── admin-analytics.tsx          # Admin analytics charts
-│   │   ├── admin-reviews-client.tsx     # Review moderation UI
-│   │   ├── admin-settings-client.tsx    # Platform config UI
-│   │   ├── admin-templates-client.tsx   # Template CRUD UI
-│   │   ├── admin-users-client.tsx       # User management table
-│   │   ├── auth-provider.tsx            # Authentication context
-│   │   ├── chat-agent-client.tsx        # Chat interface
-│   │   ├── dashboard-sidebar.tsx        # Collapsible nav sidebar
-│   │   ├── documents-client.tsx         # Document manager
-│   │   ├── draft-agent-client.tsx       # Draft generation UI
-│   │   ├── explore-client.tsx           # Template browser grid
-│   │   ├── footer.tsx                   # Site footer
-│   │   ├── history-client.tsx           # History log table
-│   │   ├── maintenance-guard.tsx        # Maintenance mode wrapper
-│   │   ├── navbar.tsx                   # Global navigation bar
-│   │   ├── profile-client.tsx           # Profile editor
-│   │   ├── providers.tsx                # Combined context providers
-│   │   ├── rewrite-agent-client.tsx     # Rewrite tool UI
-│   │   ├── template-card.tsx            # Template preview card
-│   │   └── write-review-form.tsx        # Review submission form
-│   └── lib/                     # Utility libraries
-│       ├── api.ts               # Axios instance + API helpers
-│       ├── avatar.ts            # Avatar generation utilities
-│       ├── groq.ts              # Groq AI client configuration
-│       └── utils.ts             # Shared utility functions (cn, etc.)
-├── .dockerignore                # Docker build exclusions
-├── .env                         # Environment variables (DO NOT COMMIT)
-├── .env.example                 # Environment template
-├── .eslintrc.json               # ESLint configuration
-├── .gitignore                   # Git exclusion rules
-├── components.json              # shadcn/ui component registry
-├── docker-compose.yml           # Docker Compose services
-├── Dockerfile                   # Docker container definition
-├── next-env.d.ts                # Next.js TypeScript declarations
-├── next.config.mjs              # Next.js configuration
-├── package.json                 # Dependencies and scripts
-├── package-lock.json            # Locked dependency versions
-├── postcss.config.mjs           # PostCSS plugins
-├── README.md                    # This file
-└── tsconfig.json                # TypeScript compiler config
+├── writeflow-ai-frontend/       # Independent Next.js frontend application
+│   ├── public/                  # Static assets
+│   ├── src/                     # Source code
+│   │   ├── app/                 # Next.js App Router pages
+│   │   ├── components/          # React components
+│   │   └── lib/                 # Utility functions and API clients
+│   ├── prisma/                  # Prisma schema and migrations
+│   ├── package.json             # Frontend dependencies
+│   └── tailwind.config.ts       # Tailwind CSS configuration
+│
+├── writeflow-ai-backend/        # Independent Node.js Express backend application
+│   ├── src/                     # Source code
+│   │   ├── config/              # Configuration files
+│   │   ├── middlewares/         # Express middlewares
+│   │   ├── modules/             # API modules (controllers, routes, services)
+│   │   └── server.ts            # Entry point
+│   ├── package.json             # Backend dependencies
+│   └── tsconfig.json            # TypeScript configuration
+│
+└── README.md                    # This file
 ```
 
 ---
@@ -637,9 +568,11 @@ const token = getCookie('token') || localStorage.getItem('token')
 
 ## 💾 Database Schema
 
-The application uses **PostgreSQL** (hosted on Supabase) with the following primary collections:
+The application utilizes a dual-database architecture:
+1. **PostgreSQL** (via Supabase & Prisma) for the frontend (NextAuth user sessions, accounts, and Stripe billing).
+2. **MongoDB** (via Mongoose) for the backend (storing application data like Templates, Documents, History, and Reviews).
 
-> **Note**: The actual database schema may vary. The backend repository contains the complete database structure.
+> **Note**: The schemas below represent the primary data structures. The backend uses Mongoose collections, while the frontend relies on Prisma SQL models.
 
 ### Users Collection
 
@@ -753,28 +686,6 @@ The application uses **PostgreSQL** (hosted on Supabase) with the following prim
 
 **Purpose**: Generate original long-form content from minimal user prompts.
 
-**Implementation**:
-```typescript
-// Draft Agent uses Vercel AI SDK's useCompletion hook
-import { useCompletion } from '@ai-sdk/react'
-
-export function DraftAgent() {
-  const { completion, input, handleInputChange, handleSubmit, isLoading } = useCompletion({
-    api: `${process.env.NEXT_PUBLIC_API_URL}/ai/draft`,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: { tone, keywords, templateId },
-    streamProtocol: 'text'
-  })
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <textarea value={input} onChange={handleInputChange} />
-      <button type="submit" disabled={isLoading}>Generate</button>
-      <div>{completion}</div>
-    </form>
-  )
-}
-```
 
 **Features**:
 - Configurable parameters: tone (Professional, Casual, Enthusiastic, Informative, Persuasive)
@@ -794,20 +705,6 @@ export function DraftAgent() {
 - **Professional**: Convert to formal, business-appropriate tone
 - **Casual**: Make text more conversational and friendly
 
-**Implementation**:
-```typescript
-const { completion, input, handleInputChange, handleSubmit, isLoading } = useCompletion({
-  api: `${process.env.NEXT_PUBLIC_API_URL}/ai/rewrite`,
-  headers: token ? { Authorization: `Bearer ${token}` } : {},
-  body: { action, format },
-  streamProtocol: 'text'
-})
-
-// Available output formats:
-// - auto: Keep original format
-// - paragraphs: Well-structured paragraphs
-// - bullets: Bulleted list
-```
 
 ### Chat Assistant
 
@@ -819,19 +716,7 @@ const { completion, input, handleInputChange, handleSubmit, isLoading } = useCom
 - Content strategy guidance and writing tips
 - Brainstorming and ideation support
 
-**Context Window Management**:
-```typescript
-// Chat uses Vercel AI SDK's useChat hook
-const chat = useChat({
-  transport: new DefaultChatTransport({
-    api: `${process.env.NEXT_PUBLIC_API_URL}/ai/chat`,
-    headers: () => {
-      const token = getCookie('token')
-      return token ? { Authorization: `Bearer ${token}` } : {}
-    }
-  })
-})
-```
+
 
 ---
 
@@ -888,7 +773,7 @@ const chat = useChat({
 
 ### Backend Deployment (Render / Railway)
 
-See backend repository for deployment instructions. Ensure:
+When deploying the `writeflow-ai-backend` directory, ensure:
 - MongoDB Atlas connection string is configured
 - CORS origin includes your frontend domain
 - JWT secret is set in environment variables
@@ -900,9 +785,9 @@ See backend repository for deployment instructions. Ensure:
 docker build -t writeflow-ai .
 
 # Run container
+# Ensure you provide your actual backend API URL and Groq API key via an environment file.
 docker run -p 3000:3000 \
-  -e NEXT_PUBLIC_API_URL=https://your-backend.com/api \
-  -e GROQ_API_KEY=your_key \
+  --env-file .env \
   writeflow-ai
 ```
 
