@@ -266,38 +266,45 @@ graph TD
 
 #### AI Content Generation Flow
 
-```
-User enters prompt in Draft Agent
-↓
-Client component calls useChat hook (Vercel AI SDK)
-↓
-Frontend sends request to Backend API with system prompt + user message
-↓
-Groq API processes request (llama-3.1-70b-versatile)
-↓
-Token-by-token stream returns to client
-↓
-React component updates UI in real-time with streaming text
-↓
-Final output saved to MongoDB via Backend API
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as Client Component
+    participant Backend as Backend API
+    participant Groq as Groq API
+    participant DB as MongoDB
+    
+    User->>Client: Enters prompt in Draft Agent
+    Client->>Backend: Calls useChat hook (Frontend sends request)
+    Backend->>Groq: Processes request (llama-3.1-70b-versatile)
+    Groq-->>Backend: Token-by-token stream
+    Backend-->>Client: Token stream returns to client
+    Client-->>User: Updates UI in real-time
+    Client->>Backend: Saves final output
+    Backend->>DB: Saves to MongoDB
 ```
 
 #### Authentication & Authorization Flow
 
-```
-User submits credentials on /login
-↓
-Frontend sends credentials to Backend API → Backend validates against MongoDB
-↓
-Backend returns JWT access token + refresh token
-↓
-Client stores tokens in httpOnly cookies (cookies-next)
-↓
-Subsequent API requests include Bearer token in Authorization header
-↓
-Backend middleware verifies JWT signature and decodes user role
-↓
-Role-based route guards render appropriate dashboard
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant Backend as Backend API
+    participant DB as MongoDB
+    
+    User->>Frontend: Submits credentials on /login
+    Frontend->>Backend: Sends credentials
+    Backend->>DB: Validates credentials against MongoDB
+    DB-->>Backend: Validation result
+    Backend-->>Frontend: Returns JWT access + refresh tokens
+    Frontend->>Frontend: Stores tokens in httpOnly cookies (cookies-next)
+    
+    Note over User,DB: Subsequent API Requests
+    Frontend->>Backend: API request with Bearer token in Authorization header
+    Backend->>Backend: Middleware verifies JWT signature & decodes role
+    Backend-->>Frontend: Returns authorized data
+    Frontend-->>User: Role-based route guards render appropriate dashboard
 ```
 
 ### Component Architecture
