@@ -215,42 +215,30 @@ WriteFlow AI digitizes and accelerates the entire content pipeline:
 
 ---
 
-## 🏗️ Software Architecture
-
-### Architecture Overview
-
+🏗️ Software Architecture
+Architecture Overview
 WriteFlow AI operates as a decoupled system, utilizing two independent applications within the monorepo:
-1. **Frontend (`writeflow-ai-frontend`)**: A Next.js 14 application using the App Router for UI, routing, and server-side rendering.
-2. **Backend (`writeflow-ai-backend`)**: A Node.js Express application handling the REST API, AI integrations, and core business logic.
+
+1. Frontend (`writeflow-ai-frontend`): A Next.js 14 application using the App Router for UI, routing, and server-side rendering.
+2. Backend (`writeflow-ai-backend`): A Node.js Express application handling the REST API, AI integrations, and core business logic.
 
 ```mermaid
 graph TD
-    %% Styling Definitions
-    classDef user fill:#f9f9f9,stroke:#333,stroke-width:2px,color:#333
-    classDef nextjs fill:#000000,stroke:#333,stroke-width:2px,color:#fff
-    classDef react fill:#61dafb,stroke:#333,stroke-width:2px,color:#000
-    classDef node fill:#339933,stroke:#333,stroke-width:2px,color:#fff
-    classDef mongo fill:#47a248,stroke:#333,stroke-width:2px,color:#fff
-    classDef ai fill:#ff4b4b,stroke:#333,stroke-width:2px,color:#fff
-
-    Client([💻 User Browser]):::user
+    Client[User Browser]
     
     subgraph Frontend [writeflow-ai-frontend]
-        NextJS[Next.js App Router]:::nextjs
-        SSR[Server-Side Rendering]:::nextjs
-        CSR[Client-Side Hydration]:::react
-        APIHandler[Next.js API Routes]:::nextjs
-        AIAgent[Vercel AI SDK]:::ai
+        NextJS[Next.js App Router]
+        SSR[Server-Side Rendering]
+        CSR[Client-Side Hydration]
+        APIHandler[Next.js API Routes]
+        AIAgent[Vercel AI SDK]
     end
     
     subgraph Backend [writeflow-ai-backend]
-        Express[Express REST API]:::node
-        JWT[JWT Verification]:::node
-    end
-    
-    subgraph External [External Services]
-        Groq{{Groq LLM API}}:::ai
-        MongoDB[(MongoDB Atlas)]:::mongo
+        Express[Express REST API]
+        JWT[JWT Verification]
+        Groq[Groq API]
+        MongoDB[(MongoDB Atlas)]
     end
     
     Client -->|HTTPS Request| NextJS
@@ -271,81 +259,53 @@ graph TD
     Express -->|Token Stream| AIAgent
     AIAgent -->|React Stream| CSR
     CSR -->|Real-time UI| Client
+
 ```
 
-### Key Data Flows
-
-#### AI Content Generation Flow
+Key Data Flows
+AI Content Generation Flow
 
 ```mermaid
 sequenceDiagram
-    autonumber
     actor User
-    
-    box LightCyan "Frontend"
-        participant Client as ⚛️ Client Component
-    end
-    
-    box LightGreen "Backend"
-        participant Backend as 🟢 Backend API
-    end
-    
-    box LightYellow "External Services"
-        participant Groq as 🧠 Groq API
-        participant DB as 🍃 MongoDB
-    end
+    participant Client as Client Component
+    participant Backend as Backend API
+    participant Groq as Groq API
+    participant DB as MongoDB
     
     User->>Client: Enters prompt in Draft Agent
     Client->>Backend: Calls useChat hook (Frontend sends request)
-    
-    rect rgb(240, 240, 240)
-        Backend->>Groq: Processes request (llama-3.1-70b-versatile)
-        Groq-->>Backend: Token-by-token stream
-        Backend-->>Client: Token stream returns to client
-        Client-->>User: Updates UI in real-time
-    end
-    
+    Backend->>Groq: Processes request (llama-3.1-70b-versatile)
+    Groq-->>Backend: Token-by-token stream
+    Backend-->>Client: Token stream returns to client
+    Client-->>User: Updates UI in real-time
     Client->>Backend: Saves final output
     Backend->>DB: Saves to MongoDB
+
 ```
 
-#### Authentication & Authorization Flow
+Authentication & Authorization Flow
 
 ```mermaid
 sequenceDiagram
-    autonumber
     actor User
-    
-    box LightGray "Frontend"
-        participant Frontend as ⬛ Next.js App
-    end
-    
-    box LightGreen "Backend"
-        participant Backend as 🟢 Backend API
-    end
-    
-    box LightYellow "Database"
-        participant DB as 🍃 MongoDB
-    end
+    participant Frontend
+    participant Backend as Backend API
+    participant DB as MongoDB
     
     User->>Frontend: Submits credentials on /login
     Frontend->>Backend: Sends credentials
-    Backend->>DB: Validates credentials
+    Backend->>DB: Validates credentials against MongoDB
     DB-->>Backend: Validation result
+    Backend-->>Frontend: Returns JWT access + refresh tokens
+    Frontend->>Frontend: Stores tokens in httpOnly cookies (cookies-next)
     
-    alt is Valid
-        Backend-->>Frontend: Returns JWT access + refresh tokens
-        Frontend->>Frontend: Stores tokens in httpOnly cookies
-    else is Invalid
-        Backend-->>Frontend: Returns 401 Unauthorized
-        Frontend-->>User: Shows error message
-    end
-    
-    Note over User,DB: 🔒 Subsequent API Requests
-    Frontend->>Backend: API request with Bearer token in Header
-    Backend->>Backend: Middleware verifies JWT & decodes role
+    Note over User,DB: Subsequent API Requests
+    Frontend->>Backend: API request with Bearer token in Authorization header
+    Backend->>Backend: Middleware verifies JWT signature & decodes role
     Backend-->>Frontend: Returns authorized data
-    Frontend-->>User: Renders appropriate dashboard based on role
+    Frontend-->>User: Role-based route guards render appropriate dashboard
+
 ```
 
 ### Component Architecture
