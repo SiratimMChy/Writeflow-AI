@@ -14,9 +14,9 @@
 
 <div align="center">
 
-<a href="https://write-flow-ai-tau.vercel.app" target="_blank">
+<a href="https://write-flow-ai-tau.vercel.app" target="_blank" rel="noopener noreferrer">
   <img 
-    src="https://img.shields.io/badge/%20WRITEFLOW-LIVE%20DEMO-7c3aed?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0F172A"
+    src="https://img.shields.io/badge/WRITEFLOW-LIVE%20DEMO-7c3aed?style=flat&labelColor=000000"
     alt="WRITEFLOW AI Live Demo"
   />
 </a>
