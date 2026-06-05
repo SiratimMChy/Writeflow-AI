@@ -279,8 +279,7 @@ Navigate to `http://localhost:3000` to see the application running.
 
 ## 📁 Project Structure
 
-WriteFlow AI operates heavily as a monolithic codebase out of the `writeflow-ai-frontend` directory. 
-*(Note: The `writeflow-ai-backend` directory is an archived/experimental node service and is not utilized in the production live application).*
+WriteFlow AI consists of two main directories: `writeflow-ai-frontend` and `writeflow-ai-backend`.
 
 ```
 writeflow-ai/
@@ -319,6 +318,20 @@ writeflow-ai/
 │   ├── package.json             # App dependencies
 │   ├── tailwind.config.ts       # Tailwind CSS config
 │   └── tsconfig.json            # TypeScript settings
+│
+├── writeflow-ai-backend/        # Node.js/Express Backend Service
+│   ├── src/
+│   │   ├── config/              # Server configurations
+│   │   ├── middlewares/         # Express middlewares
+│   │   ├── modules/             # Feature modules (e.g., document)
+│   │   ├── types/               # TypeScript definitions
+│   │   ├── app.ts               # Express application setup
+│   │   ├── seed.ts              # Database seeder scripts
+│   │   └── server.ts            # Server entry point
+│   ├── .env.example             # Environment template
+│   ├── package.json             # App dependencies
+│   └── tsconfig.json            # TypeScript settings
+│
 └── README.md                    # Project documentation
 ```
 
