@@ -1,4 +1,4 @@
-# ✍️ WriteFlow AI - AI-Powered Content Creation Platform
+# ✍️ WriteFlow-AI - AI-Powered Content Creation Platform
 
 > Discover a seamless, lightning-fast workspace for generating, rewriting, and optimizing content powered by cutting-edge AI.
 
@@ -16,7 +16,7 @@
 
 <a href="https://write-flow-ai-tau.vercel.app" target="_blank">
   <img 
-    src="https://img.shields.io/badge/🚀%20WRITEFLOW-LIVE%20DEMO-7c3aed?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0F172A"
+    src="https://img.shields.io/badge/%20WRITEFLOW-LIVE%20DEMO-7c3aed?style=for-the-badge&logo=vercel&logoColor=white&labelColor=0F172A"
     alt="WRITEFLOW AI Live Demo"
   />
 </a>
@@ -109,57 +109,9 @@ Unlike traditional text generators, WriteFlow AI stands out by:
 
 ---
 
-## 🏗️ Enterprise Software Architecture
+## 🏗️ Software Architecture
+<img width="1440" height="1520" alt="image" src="https://github.com/user-attachments/assets/4ed099a7-efce-4ef2-862a-75f6e3ed0f21" />
 
-WriteFlow AI utilizes a decoupled, serverless-ready monolithic architecture optimized for the edge. It cleanly separates the presentation layer, serverless business logic, and cloud data persistence within a unified Next.js environment.
-
-```mermaid
-graph TD
-    %% Professional Styling Classes
-    classDef client fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a;
-    classDef frontend fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e;
-    classDef backend fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f;
-    classDef database fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d;
-    classDef external fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87;
-
-    %% Presentation Layer
-    User((User / Browser)):::client
-
-    %% Unified Monolith / Vercel Edge
-    subgraph Platform [WriteFlow AI Core / Vercel Serverless]
-        direction TB
-        
-        UI[⚛️ React Server & Client Components]:::frontend
-        AIHooks[🎣 Vercel AI SDK Abstractions]:::frontend
-        
-        API[⚡ Next.js API Routes / Server Actions]:::backend
-        Auth[🛡️ NextAuth & Rate Limiting Middleware]:::backend
-        
-        Prisma[🗃️ Prisma ORM Engine]:::database
-    end
-
-    %% External Infrastructure Services
-    PostgreSQL[(🐘 PostgreSQL Database)]:::database
-    Groq[🧠 Groq LLaMA 3.3 Inference API]:::external
-    Stripe[💳 Stripe Payments Gateway]:::external
-
-    %% Request Lifecycle Connections
-    User -->|1. HTTPS Interaction| UI
-    UI -->|2. useChat / useCompletion| AIHooks
-    AIHooks -->|3. Streaming HTTP Request| API
-    
-    API -->|4. Intercept & Validate| Auth
-    API -->|5. Verify Token Quotas| Prisma
-    API -->|6. Process Webhooks| Stripe
-    
-    Prisma -->|7. SQL Transactions| PostgreSQL
-    
-    API -->|8. Dispatch Prompt| Groq
-    Groq -.->|9. LLM Token Stream| API
-    API -.->|10. SSE Response| AIHooks
-    AIHooks -.->|11. Progressive Hydration| UI
-    UI -.->|12. Real-time DOM Update| User
-```
 
 ### Data Flow
 
@@ -552,8 +504,8 @@ This project is licensed under the **MIT License** - see the LICENSE file for de
 
 **Made by Siratim Mustakim Chowdhury**
 
-⭐ **Star this repository if you find it helpful!**
-
-**[🌍 Visit WriteFlow AI](https://write-flow-ai-tau.vercel.app)** | **[📧 Contact Me](mailto:chowdhurysiratimmustakim@gmail.com)** | **[🐙 GitHub](https://github.com/SiratimMChy)**
+[![GitHub](https://img.shields.io/badge/GitHub-SiratimMChy-181717?style=flat&logo=github)](https://github.com/SiratimMChy)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Siratim%20Mustakim-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/siratim-mustakim-chowdhury/)
+[![Email](https://img.shields.io/badge/Email-chowdhurysiratimmustakim@gmail.com-D14836?style=flat&logo=gmail&logoColor=white)](mailto:chowdhurysiratimmustakim@gmail.com)
 
 </div>
