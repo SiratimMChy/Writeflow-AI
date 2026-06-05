@@ -17,16 +17,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Content is required" }, { status: 400 })
     }
 
+    const documentData = {
+      title: title || "Untitled Document",
+      content,
+      status: status || "draft",
+      type: type || "draft",
+      wordCount: wordCount || content.split(/\s+/).length,
+      userId: session.user.id
+    };
+
     const document = await prisma.document.create({
-      data: {
-        title: title || "Untitled Document",
-        content,
-        status: status || "draft",
-        type: type || "draft",
-        wordCount: wordCount || content.split(/\s+/).length,
-        userId: session.user.id
-      }
-    })
+      data: documentData
+    });
 
     return NextResponse.json({ success: true, document })
   } catch (error) {
