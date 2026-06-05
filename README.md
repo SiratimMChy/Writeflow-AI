@@ -1,4 +1,4 @@
-# ✍️ WriteFlow-AI - AI-Powered Content Creation Platform
+# ✍️ WriteFlowAi - AI-Powered Content Creation Platform
 
 > Discover a seamless, lightning-fast workspace for generating, rewriting, and optimizing content powered by cutting-edge AI.
 
