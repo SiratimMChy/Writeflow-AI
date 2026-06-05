@@ -109,36 +109,56 @@ Unlike traditional text generators, WriteFlow AI stands out by:
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Enterprise Software Architecture
 
-WriteFlow AI follows a modern full-stack monolithic architecture leveraging Next.js:
+WriteFlow AI utilizes a decoupled, serverless-ready monolithic architecture optimized for the edge. It cleanly separates the presentation layer, serverless business logic, and cloud data persistence within a unified Next.js environment.
 
 ```mermaid
 graph TD
-    Client[User Browser]
-    
-    subgraph Frontend [writeflow-ai-frontend]
-        NextJS[Next.js App Router]
-        APIHandler[Next.js API Routes]
-        AIAgent[Vercel AI SDK Hooks]
-        PrismaORM[Prisma ORM]
+    %% Professional Styling Classes
+    classDef client fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a;
+    classDef frontend fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e;
+    classDef backend fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f;
+    classDef database fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d;
+    classDef external fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#581c87;
+
+    %% Presentation Layer
+    User((User / Browser)):::client
+
+    %% Unified Monolith / Vercel Edge
+    subgraph Platform [WriteFlow AI Core / Vercel Serverless]
+        direction TB
+        
+        UI[⚛️ React Server & Client Components]:::frontend
+        AIHooks[🎣 Vercel AI SDK Abstractions]:::frontend
+        
+        API[⚡ Next.js API Routes / Server Actions]:::backend
+        Auth[🛡️ NextAuth & Rate Limiting Middleware]:::backend
+        
+        Prisma[🗃️ Prisma ORM Engine]:::database
     end
+
+    %% External Infrastructure Services
+    PostgreSQL[(🐘 PostgreSQL Database)]:::database
+    Groq[🧠 Groq LLaMA 3.3 Inference API]:::external
+    Stripe[💳 Stripe Payments Gateway]:::external
+
+    %% Request Lifecycle Connections
+    User -->|1. HTTPS Interaction| UI
+    UI -->|2. useChat / useCompletion| AIHooks
+    AIHooks -->|3. Streaming HTTP Request| API
     
-    Client -->|HTTPS Request| NextJS
-    NextJS -->|Internal Call| APIHandler
-    NextJS -->|AI Stream Hook| AIAgent
+    API -->|4. Intercept & Validate| Auth
+    API -->|5. Verify Token Quotas| Prisma
+    API -->|6. Process Webhooks| Stripe
     
-    APIHandler -->|Database Query| PrismaORM
-    AIAgent -->|Stream Request| APIHandler
+    Prisma -->|7. SQL Transactions| PostgreSQL
     
-    APIHandler -->|Auth Validation| NextJS
-    APIHandler -->|LLM Inference| GroqAPI[Groq API]
-    
-    PrismaORM -->|SQL Queries| DB[(PostgreSQL)]
-    
-    GroqAPI -->|Token Stream| APIHandler
-    APIHandler -->|Token Stream| AIAgent
-    AIAgent -->|React Stream| Client
+    API -->|8. Dispatch Prompt| Groq
+    Groq -.->|9. LLM Token Stream| API
+    API -.->|10. SSE Response| AIHooks
+    AIHooks -.->|11. Progressive Hydration| UI
+    UI -.->|12. Real-time DOM Update| User
 ```
 
 ### Data Flow
